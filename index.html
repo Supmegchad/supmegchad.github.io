@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The 67inator</title>
+  <style>
+    body {
+    background-color: lightblue;
+    }
+    textarea {
+      width: 100;
+      height: 170px;
+      resize: none;
+    }
+    button {
+      margin-bottom: 10px;
+      padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>THE 67INATOR</h1>
+  <h2>WARNING: PROCEED WITH CAUTION</h2>
+  <h3>This website will generate a number between one and one million, and will repeat so until the number generated is 67. BE WARNED, each number generated will stay in the device's memory, so if you don't have a lot of memory, it may crash your computer</h3>
+
+  <button id="runBtn">Start the inator</button>
+  <textarea id="output" readonly></textarea>
+
+  <script>
+    const runBtn = document.getElementById("runBtn");
+    const output = document.getElementById("output");
+
+    let lines = [];
+    let worker;
+
+    runBtn.onclick = () => {
+      if (worker) return;
+
+      // Create worker from a Blob so everything stays in one file
+      const workerCode = `
+	const min = 1;
+	const max = 1000000;
+
+	let number = 0;
+
+	while (number !== 67)
+	{
+	  postMessage(number);
+	   number = Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+
+	postMessage(67);
+	postMessage("heck yeah!");
+      `;
+
+      const blob = new Blob([workerCode], { type: "application/javascript" });
+      worker = new Worker(URL.createObjectURL(blob));
+
+      worker.onmessage = (e) => {
+        lines.push(e.data);
+
+        // keep only last 10 lines
+        if (lines.length > 10) {
+          lines = lines.slice(-10);
+        }
+
+        output.value = lines.join("\n");
+      };
+    };
+  </script>
+
+</body>
+</html>
+
